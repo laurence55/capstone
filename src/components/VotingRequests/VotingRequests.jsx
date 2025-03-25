@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import Sidebar from '../Dashboard/Sidebar';
 
@@ -182,7 +182,108 @@ const RequestCard = styled.div`
   }
 `;
 
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const FormGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 500;
+  }
+`;
+
+const Input = styled.input`
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: #4834d4;
+    box-shadow: 0 0 0 2px rgba(72, 52, 212, 0.1);
+  }
+`;
+
+const TextArea = styled.textarea`
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  min-height: 100px;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #4834d4;
+    box-shadow: 0 0 0 2px rgba(72, 52, 212, 0.1);
+  }
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const Button = styled.button`
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: ${props => props.primary ? '#4834d4' : '#e2e8f0'};
+  color: ${props => props.primary ? 'white' : '#1a1a1a'};
+
+  &:hover {
+    background: ${props => props.primary ? '#372aaa' : '#cbd5e1'};
+  }
+`;
+
 const VotingRequests = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [newRequest, setNewRequest] = useState({
+    itemName: '',
+    quantity: '',
+    reason: '',
+    urgency: 'normal'
+  });
+
   const officeSupplies = [
     {
       id: 1,
@@ -269,6 +370,36 @@ const VotingRequests = () => {
     }
   ];
 
+  const filteredSupplies = officeSupplies.filter(supply =>
+    supply.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleRequestChange = (e) => {
+    const { name, value } = e.target;
+    setNewRequest(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitRequest = (e) => {
+    e.preventDefault();
+    // Here you would typically send the request to your backend
+    console.log('New request submitted:', newRequest);
+    // Reset form and close modal
+    setNewRequest({
+      itemName: '',
+      quantity: '',
+      reason: '',
+      urgency: 'normal'
+    });
+    setShowModal(false);
+  };
+
   return (
     <PageContainer>
       <Sidebar />
@@ -278,12 +409,16 @@ const VotingRequests = () => {
             <h1>Voting and Requests Page</h1>
             <p>Vote for needed supplies, request new items, and track approvals.</p>
           </Title>
-          <RequestButton>
+          <RequestButton onClick={() => setShowModal(true)}>
             <span>+</span> Request New Supply
           </RequestButton>
         </Header>
 
-        <SearchBar placeholder="Browse Supplies..." />
+        <SearchBar 
+          placeholder="Browse Supplies..." 
+          value={searchQuery}
+          onChange={handleSearch}
+        />
 
         <ContentGrid>
           <SuppliesSection>
@@ -291,7 +426,7 @@ const VotingRequests = () => {
               Office Supplies
             </CategoryTitle>
             <SuppliesGrid>
-              {officeSupplies.map(supply => (
+              {filteredSupplies.map(supply => (
                 <SupplyCard key={supply.id}>
                   <h3>{supply.name}</h3>
                   <div className="votes">{supply.votes} votes</div>
@@ -321,6 +456,56 @@ const VotingRequests = () => {
             </RequestsList>
           </RequestsSection>
         </ContentGrid>
+
+        {showModal && (
+          <Modal>
+            <ModalContent>
+              <h2>Request New Supply</h2>
+              <Form onSubmit={handleSubmitRequest}>
+                <FormGroup>
+                  <label htmlFor="itemName">Item Name</label>
+                  <Input
+                    type="text"
+                    id="itemName"
+                    name="itemName"
+                    value={newRequest.itemName}
+                    onChange={handleRequestChange}
+                    required
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <label htmlFor="quantity">Quantity Needed</label>
+                  <Input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    value={newRequest.quantity}
+                    onChange={handleRequestChange}
+                    required
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <label htmlFor="reason">Reason for Request</label>
+                  <TextArea
+                    id="reason"
+                    name="reason"
+                    value={newRequest.reason}
+                    onChange={handleRequestChange}
+                    required
+                  />
+                </FormGroup>
+                <ButtonGroup>
+                  <Button type="button" onClick={() => setShowModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" primary>
+                    Submit Request
+                  </Button>
+                </ButtonGroup>
+              </Form>
+            </ModalContent>
+          </Modal>
+        )}
       </MainContent>
     </PageContainer>
   );

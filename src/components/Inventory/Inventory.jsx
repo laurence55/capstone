@@ -129,6 +129,7 @@ const LastUpdated = styled.span`
 
 const Inventory = () => {
   const [activeTab, setActiveTab] = useState('List');
+  const [searchQuery, setSearchQuery] = useState('');
   
   const supplies = [
     {
@@ -151,10 +152,33 @@ const Inventory = () => {
       quantity: '0 pcs',
       status: 'Out of Stock',
       lastUpdated: '3 days Ago'
+    },
+    {
+      id: 4,
+      name: 'Ballpoint Pens',
+      quantity: '200 pcs',
+      status: 'In Stock',
+      lastUpdated: '1 day Ago'
+    },
+    {
+      id: 5,
+      name: 'Staplers',
+      quantity: '5 pcs',
+      status: 'Low Stock',
+      lastUpdated: '4 days Ago'
     }
   ];
 
   const tabs = ['List', 'Recently Added', 'Most Needed', 'Lowest Stock'];
+
+  // Filter supplies based on search query
+  const filteredSupplies = supplies.filter(supply =>
+    supply.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   return (
     <PageContainer>
@@ -167,7 +191,11 @@ const Inventory = () => {
           </Title>
         </Header>
 
-        <SearchBar placeholder="Browse Supplies..." />
+        <SearchBar 
+          placeholder="Browse Supplies..." 
+          value={searchQuery}
+          onChange={handleSearch}
+        />
 
         <TabList>
           {tabs.map(tab => (
@@ -191,7 +219,7 @@ const Inventory = () => {
             </tr>
           </thead>
           <tbody>
-            {supplies.map(supply => (
+            {filteredSupplies.map(supply => (
               <tr key={supply.id}>
                 <Td>{supply.name}</Td>
                 <Td>{supply.quantity}</Td>
